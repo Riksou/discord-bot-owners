@@ -1,0 +1,8 @@
+# Packages without specific version restriction.
+discord.py
+jishaku
+
+chat-exporter
+
+motor
+ujson
