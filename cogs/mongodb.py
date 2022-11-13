@@ -11,7 +11,15 @@ class MongoDB(commands.Cog):
     DEFAULT_GUILD_DATA = {
         "_id": 0,
         "tickets_channel_id": None,
-        "tickets_message_id": None
+        "tickets_message_id": None,
+        "verification_channel_id": None,
+        "verification_message_id": None,
+        "pending_verification_message_ids": {}
+    }
+
+    DEFAULT_GUILD_MEMBER = {
+        "_id": 0,
+        "verification_pending": False
     }
 
     def __init__(self, client: DiscordBotOwners):
@@ -46,6 +54,22 @@ class MongoDB(commands.Cog):
 
     async def update_guild_data_document(self, query):
         await self.db["guild_data"].update_one({"_id": str(self.client.config["guild_id"])}, query, upsert=True)
+
+    """ Guild Member collection """
+
+    async def fetch_guild_member(self, member_id: int):
+        guild_member = await self.db["guild_member"].find_one({"_id": str(member_id)})
+        if guild_member is not None:
+            guild_member = self._set_default_dict(guild_member, self.DEFAULT_GUILD_MEMBER)
+        else:
+            guild_member = ujson.loads(ujson.dumps(self.DEFAULT_GUILD_MEMBER))
+
+        guild_member["_id"] = member_id
+
+        return guild_member
+
+    async def update_guild_member_document(self, member_id: int, query):
+        await self.db["guild_member"].update_one({"_id": str(member_id)}, query, upsert=True)
 
 
 async def setup(client):

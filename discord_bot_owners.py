@@ -36,6 +36,8 @@ class DiscordBotOwners(commands.Bot):
         self.tickets["Support"] = {}
 
         self.color = 0x5865F2
+        self.green = 0x04d277
+        self.red = 0xE24C4B
 
     @property
     def mongo(self) -> Optional[MongoDB]:

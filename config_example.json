@@ -12,6 +12,11 @@
   },
   "role_id": {
     "manager": 600963244622086146,
+    "verified_bot_developer": 820752105081798656,
+    "bot_owner_roles": [
+      820752077416038431,
+      600963244622086146
+    ],
     "python_developer": {
       "manager": 1041099885673463868,
       "main": 1041096977041084537,
@@ -43,7 +48,8 @@
   },
   "channel_id": {
     "ticket_logs": 931994006265667654,
-    "staff_logs": 931994006265667654
+    "staff_logs": 931994006265667654,
+    "verification_requests": 1041449847909261352
   },
   "category_id": {
     "tickets": 1041100860991733790
