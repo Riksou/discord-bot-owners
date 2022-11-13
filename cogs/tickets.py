@@ -1,9 +1,10 @@
+from typing import Dict
+
 import chat_exporter
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-import utils.constant as const
 from discord_bot_owners import DiscordBotOwners
 
 
@@ -22,18 +23,21 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
     await interaction.response.send_message("Your ticket is being created...", ephemeral=True)
 
     tickets_category = interaction.guild.get_channel(interaction.client.config["category_id"]["tickets"])
-    ticket_name = f"{const.TICKETS_RAW_OPTIONS[category][2]}-{interaction.user.name}-{interaction.user.discriminator}"
 
     overwrites = {
         interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
         interaction.user: discord.PermissionOverwrite(read_messages=True)
     }
+    ticket_name = f"-{interaction.user.name}-{interaction.user.discriminator}"
 
     if stars is not None:
         category_manager_role = interaction.guild.get_role(
             interaction.client.config["role_id"][f"{category.lower()}_developer"]["manager"]
         )
         overwrites[category_manager_role] = discord.PermissionOverwrite(read_messages=True, manage_messages=True)
+        ticket_name = f"{interaction.client.config['tickets'][category][2]}" + ticket_name
+    else:
+        ticket_name = f"support" + ticket_name
 
     ticket_channel = await interaction.guild.create_text_channel(
         ticket_name, overwrites=overwrites, category=tickets_category
@@ -85,12 +89,12 @@ class TicketCreationModal(discord.ui.Modal, title="Create a Ticket"):
 
 class TicketsDropdown(discord.ui.Select):
 
-    def __init__(self):
+    def __init__(self, config: Dict):
         options = [
             discord.SelectOption(label=key, description=value[0], emoji=value[1]) for key, value in
-            const.TICKETS_RAW_OPTIONS.items()
+            config["tickets"].items()
         ]
-        super().__init__(placeholder="Select a category...", options=options, custom_id="persisten:dropdown")
+        super().__init__(placeholder="Select a category...", options=options)
 
     async def callback(self, interaction: discord.Interaction):
         category = self.values[0]
@@ -104,7 +108,20 @@ class TicketsView(discord.ui.View):
 
     def __init__(self):
         super().__init__(timeout=None)
-        self.add_item(TicketsDropdown())
+
+    @discord.ui.button(
+        label="Skill Evaluation", emoji="⭐", style=discord.ButtonStyle.blurple, custom_id="persisten:skill_eval"
+    )
+    async def skill_evaluation(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        view = discord.ui.View()
+        view.add_item(TicketsDropdown(interaction.client.config))
+        await interaction.response.send_message(view=view, ephemeral=True)
+
+    @discord.ui.button(
+        label="Support", emoji="❓", style=discord.ButtonStyle.blurple, custom_id="persisten:support"
+    )
+    async def support(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        await create_ticket(interaction, "Support")
 
 
 class Tickets(commands.Cog):

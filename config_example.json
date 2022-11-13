@@ -4,6 +4,12 @@
   "mongodb_uri": "mongodb://127.0.0.1/",
   "ticket_transcripts_path": "",
   "ticket_transcripts_url": "",
+  "tickets": {
+    "Python": ["Request an evaluation of your Python skills.", "<:python:1040766009319100546>", "py"],
+    "JavaScript": ["Request an evaluation of your JavaScript skills.", "<:javascript:1040765775394377868>", "js"],
+    "Java": ["Request an evaluation of your Java skills.", "<:Java:861118214049497119>", "java"],
+    "Rust": ["Request an evaluation of your Rust skills.", "<:Rust:861119790924038154>", "rust"]
+  },
   "role_id": {
     "manager": 600963244622086146,
     "python_developer": {

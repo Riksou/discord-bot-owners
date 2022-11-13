@@ -7,8 +7,6 @@ from typing import Optional, TYPE_CHECKING
 import discord
 from discord.ext import commands
 
-import utils.constant as const
-
 if TYPE_CHECKING:
     from cogs.mongodb import MongoDB
 
@@ -34,7 +32,8 @@ class DiscordBotOwners(commands.Bot):
 
         self.config = config
 
-        self.tickets = {d: {} for d in const.TICKETS_RAW_OPTIONS}
+        self.tickets = {d: {} for d in self.config["tickets"]}
+        self.tickets["Support"] = {}
 
         self.color = 0x5865F2
 
