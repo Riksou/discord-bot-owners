@@ -42,7 +42,8 @@
     }
   },
   "channel_id": {
-    "ticket_logs": 931994006265667654
+    "ticket_logs": 931994006265667654,
+    "staff_logs": 931994006265667654
   },
   "category_id": {
     "tickets": 1041100860991733790
