@@ -58,7 +58,7 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
         ticket_embed.add_field(name="Category", value=category, inline=False)
         ticket_embed.add_field(name="Stars", value=stars, inline=False)
 
-    ticket_embed.set_footer(text="Discord Bot Owners", icon_url=interaction.client.user.avatar.url)
+    ticket_embed.set_footer(text="Discord Bot Owners", icon_url=interaction.client.user.display_avatar)
 
     await ticket_channel.send(embed=ticket_embed)
     fake_ping = await ticket_channel.send(f"{interaction.user.mention}")
