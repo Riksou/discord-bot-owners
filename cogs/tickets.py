@@ -145,7 +145,7 @@ class Tickets(commands.Cog):
     async def send_tickets_view(self, channel, **kwargs) -> None:
         tickets_embed = discord.Embed(
             title="Create a ticket",
-            description="Select the category you are willing to create a ticket about using the following select.",
+            description="Select the category you are willing to create a ticket about using the buttons below.",
             color=self.client.color
         )
 
