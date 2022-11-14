@@ -19,7 +19,9 @@ class MongoDB(commands.Cog):
 
     DEFAULT_GUILD_MEMBER = {
         "_id": 0,
-        "verification_pending": False
+        "verification_pending": False,
+        "exp": 0,
+        "level": 1
     }
 
     def __init__(self, client: DiscordBotOwners):
