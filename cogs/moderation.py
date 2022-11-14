@@ -19,7 +19,7 @@ class Moderation(commands.Cog):
             timestamp=discord.utils.utcnow()
         )
 
-        staff_log_embed.set_author(name=f"{case_type} | {user}", icon_url=user.avatar.url)
+        staff_log_embed.set_author(name=f"{case_type} | {user}", icon_url=user.display_avatar)
         staff_log_embed.add_field(name="**User**", value=user.mention)
         staff_log_embed.add_field(name="**Moderator**", value=moderator.mention)
         if duration is not None:
