@@ -50,7 +50,8 @@
   "channel_id": {
     "ticket_logs": 931994006265667654,
     "staff_logs": 931994006265667654,
-    "verification_requests": 1041449847909261352
+    "verification_requests": 1041449847909261352,
+    "general": 1040734156327501905
   },
   "category_id": {
     "tickets": 1041100860991733790

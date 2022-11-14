@@ -33,9 +33,29 @@ class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
             {"$unset": {f"pending_verification_message_ids.{self.message.id}": ""}}
         )
 
+        embed = self.message.embeds[0]
+        embed.set_field_at(5, name="Status", value="Accepted.")
+        embed.colour = interaction.client.green
+        await interaction.message.edit(embed=embed, view=None)
+
         await interaction.response.send_message(
             f"You accepted the verification for {self.member.mention}.", ephemeral=True
         )
+
+        general_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["general"])
+        await general_channel.send(f"Welcome {self.member.mention} in Discord Bot Owners!")
+
+        accepted_embed = discord.Embed(
+            title="Verification Accepted",
+            description="Your verification to enter Discord Bot Owners has been accepted.",
+            color=interaction.client.color,
+            timestamp=discord.utils.utcnow()
+        )
+
+        try:
+            await self.member.send(embed=accepted_embed)
+        except discord.HTTPException:
+            pass
 
 
 class DeniedBotOwnerVerificationModal(discord.ui.Modal, title="Deny Verification"):
@@ -106,10 +126,6 @@ class PendingVerificationView(discord.ui.View):
             embed.set_field_at(5, name="Status", value="User left.")
             await interaction.message.edit(embed=embed, view=None)
             return await interaction.response.send_message("The user left the server.")
-
-        embed.set_field_at(5, name="Status", value="Accepted.")
-        embed.colour = interaction.client.green
-        await interaction.message.edit(embed=embed, view=None)
 
         view = discord.ui.View()
         view.add_item(AcceptedBotOwnerVerificationSelect(interaction.client, member, interaction.message))
