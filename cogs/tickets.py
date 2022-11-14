@@ -17,7 +17,7 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
 
     if stars is not None and stars not in {"1", "2", "3"}:
         return await interaction.response.send_message(
-            "The number of requested starts must be either 1, 2 or 3.", ephemeral=True
+            "The number of requested stars must be either 1, 2 or 3.", ephemeral=True
         )
 
     await interaction.response.send_message("Your ticket is being created...", ephemeral=True)
@@ -58,7 +58,7 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
         ticket_embed.add_field(name="Category", value=category, inline=False)
         ticket_embed.add_field(name="Stars", value=stars, inline=False)
 
-    ticket_embed.set_footer(text="Discord Bot Owners", icon_url=interaction.client.user.avatar.url)
+    ticket_embed.set_footer(text="Discord Bot Owners", icon_url=interaction.client.user.display_avatar)
 
     await ticket_channel.send(embed=ticket_embed)
     fake_ping = await ticket_channel.send(f"{interaction.user.mention}")
