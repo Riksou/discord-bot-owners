@@ -17,7 +17,7 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
 
     if stars is not None and stars not in {"1", "2", "3"}:
         return await interaction.response.send_message(
-            "The number of requested starts must be either 1, 2 or 3.", ephemeral=True
+            "The number of requested stars must be either 1, 2 or 3.", ephemeral=True
         )
 
     await interaction.response.send_message("Your ticket is being created...", ephemeral=True)
