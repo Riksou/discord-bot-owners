@@ -5,10 +5,7 @@ import os
 from typing import Optional, TYPE_CHECKING
 
 import discord
-import lavalink
 from discord.ext import commands
-
-from utils.context import MusicContext
 
 if TYPE_CHECKING:
     from cogs.mongodb import MongoDB
@@ -38,8 +35,6 @@ class DiscordBotOwners(commands.Bot):
         self.tickets = {d: {} for d in self.config["tickets"]}
         self.tickets["Support"] = {}
 
-        self.lavalink = None
-
         self.color = 0x5865F2
         self.green = 0x04d277
         self.red = 0xE24C4B
@@ -47,9 +42,6 @@ class DiscordBotOwners(commands.Bot):
     @property
     def mongo(self) -> Optional[MongoDB]:
         return self.get_cog("MongoDB")
-
-    async def get_context(self, message, *, cls=MusicContext):
-        return await super().get_context(message, cls=cls)
 
     """ Ready actions. """
 
@@ -62,15 +54,6 @@ class DiscordBotOwners(commands.Bot):
 
     async def setup_hook(self) -> None:
         self.loop.create_task(self.ready_actions())
-
-        self.lavalink = lavalink.Client(self.user.id)
-        self.lavalink.add_node(
-            self.config["lavalink"]["host"],
-            self.config["lavalink"]["port"],
-            self.config["lavalink"]["password"],
-            self.config["lavalink"]["region"],
-            "default-node"
-        )
 
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py"):
