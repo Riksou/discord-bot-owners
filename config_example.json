@@ -10,6 +10,12 @@
     "Java": ["Request an evaluation of your Java skills.", "<:Java:861118214049497119>", "java"],
     "Rust": ["Request an evaluation of your Rust skills.", "<:Rust:861119790924038154>", "rust"]
   },
+  "lavalink": {
+    "host": "127.0.0.1",
+    "port": 2333,
+    "password": "youshallnotpass",
+    "region": "eu"
+  },
   "role_id": {
     "manager": 600963244622086146,
     "verified_bot_developer": 820752105081798656,

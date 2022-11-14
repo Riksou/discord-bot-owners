@@ -1,8 +1,13 @@
 # Packages without specific version restriction.
-discord.py
+discord.py[voice]
+lavalink
 jishaku
 
 chat-exporter
 
 motor
 ujson
+
+# Packages from GitHub.
+discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@master
+discord-ext-menus-views @ git+https://github.com/oliver-ni/discord-ext-menus-views@master
