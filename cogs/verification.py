@@ -172,7 +172,7 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
     async def on_submit(self, interaction: discord.Interaction):
         verification_embed = discord.Embed(
             title="Bot Owner Verification Request",
-            description=f"{interaction.user.mention} ({interaction.user}) is willing to enter the server.",
+            description=f"{interaction.user.mention} ({interaction.user}) is wanting to enter the server.",
             color=interaction.client.color,
             timestamp=discord.utils.utcnow()
         )
