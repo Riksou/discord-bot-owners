@@ -14,7 +14,9 @@ class MongoDB(commands.Cog):
         "tickets_message_id": None,
         "verification_channel_id": None,
         "verification_message_id": None,
-        "pending_verification_message_ids": {}
+        "pending_verification_message_ids": {},
+        "auto_roles_channel_id": None,
+        "auto_roles_message_id": None
     }
 
     DEFAULT_GUILD_MEMBER = {
