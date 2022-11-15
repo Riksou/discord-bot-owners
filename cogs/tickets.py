@@ -198,7 +198,7 @@ class Tickets(commands.Cog):
 
         try:
             transcript = await chat_exporter.export(interaction.channel)
-            with open(f"{self.client.config['tickets_path']}/{interaction.channel.id}.html", "w") as fic:
+            with open(f"{self.client.config['ticket_transcripts_path']}/{interaction.channel.id}.html", "w") as fic:
                 fic.write(transcript)
         except Exception:
             pass
