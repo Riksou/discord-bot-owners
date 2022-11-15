@@ -2,8 +2,6 @@
   "bot_token": "",
   "guild_id": 596978185422372866,
   "mongodb_uri": "mongodb://127.0.0.1/",
-  "ticket_transcripts_path": "",
-  "ticket_transcripts_url": "",
   "tickets": {
     "Python": ["Request an evaluation of your Python skills.", "<:python:1040766009319100546>", "py"],
     "JavaScript": ["Request an evaluation of your JavaScript skills.", "<:javascript:1040765775394377868>", "js"],

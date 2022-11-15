@@ -1,3 +1,4 @@
+import io
 from typing import Literal, List, Dict
 
 import chat_exporter
@@ -196,10 +197,12 @@ class Tickets(commands.Cog):
             # It's a race condition if we're here.
             pass
 
+        transcript = None
         try:
-            transcript = await chat_exporter.export(interaction.channel)
-            with open(f"{self.client.config['ticket_transcripts_path']}/{interaction.channel.id}.html", "w") as fic:
-                fic.write(transcript)
+            raw_transcript = await chat_exporter.export(interaction.channel)
+            transcript = discord.File(
+                io.BytesIO(raw_transcript.encode()), filename=f"transcript-{interaction.channel.id}.html",
+            )
         except Exception:
             pass
 
@@ -218,12 +221,15 @@ class Tickets(commands.Cog):
             description=f"{user_msg}"
                         f"**Closed by**: {closer.mention} / {closer.name}#{closer.discriminator}\n"
                         f"**Category**: {category}\n"
-                        f"**Transcript**: [click here]({self.client.config['ticket_transcripts_url']}/"
-                        f"{interaction.channel.id})\n",
+                        f"**Transcript**: *see attachments*\n",
             color=self.client.color,
             timestamp=discord.utils.utcnow()
         )
-        await logs_channel.send(embed=embed_log)
+
+        if transcript is not None:
+            await logs_channel.send(embed=embed_log, file=transcript)
+        else:
+            await logs_channel.send(embed=embed_log)
 
     """ Skill Evaluation commands. """
 
