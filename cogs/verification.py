@@ -185,6 +185,12 @@ class PendingVerificationView(discord.ui.View):
             view.add_item(AcceptedBotOwnerVerificationSelect(interaction.client, member, interaction.message))
             await interaction.response.send_message(view=view, ephemeral=True)
         else:
+            library_developer = interaction.guild.get_role(
+                interaction.client.config["role_id"]["library_developer"]
+            )
+
+            await interaction.user.add_roles(library_developer)
+
             await accept_verification(interaction, member, interaction.message)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.red, custom_id="persisten:deny")
