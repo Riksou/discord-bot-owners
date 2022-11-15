@@ -36,7 +36,7 @@ class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
         embed = self.message.embeds[0]
         embed.set_field_at(5, name="Status", value="Accepted.")
         embed.colour = interaction.client.green
-        await interaction.message.edit(embed=embed, view=None)
+        await self.message.edit(embed=embed, view=None)
 
         await interaction.response.send_message(
             f"You accepted the verification for {self.member.mention}.", ephemeral=True
