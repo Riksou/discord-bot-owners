@@ -184,7 +184,7 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
         verification_embed.add_field(name="Proof of Ownership", value=self.ownership_proof.value, inline=False)
         verification_embed.add_field(name="Status", value="Pending", inline=False)
 
-        verification_embed.set_thumbnail(url=interaction.user.avatar.url)
+        verification_embed.set_thumbnail(url=interaction.user.display_avatar)
 
         verification_requests_channel = interaction.guild.get_channel(
             interaction.client.config["channel_id"]["verification_requests"]
