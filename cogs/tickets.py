@@ -1,8 +1,9 @@
-from typing import Dict
+from typing import Literal, List, Dict
 
 import chat_exporter
 import discord
 from discord import app_commands
+from discord.app_commands import Choice
 from discord.ext import commands
 
 from discord_bot_owners import DiscordBotOwners
@@ -223,6 +224,62 @@ class Tickets(commands.Cog):
             timestamp=discord.utils.utcnow()
         )
         await logs_channel.send(embed=embed_log)
+
+    """ Skill Evaluation commands. """
+
+    skill_group = app_commands.Group(
+        name="skill", description="Manage skills for users.",
+        default_permissions=discord.Permissions(administrator=True)
+    )
+
+    @skill_group.command(name="add")
+    async def skill_add(self, interaction: discord.Interaction, user: discord.Member, skill: str,
+                        stars: Literal["1", "2", "3"]):
+        """Add a skill to a user."""
+        if skill not in self.client.config["tickets"]:
+            return await interaction.response.send_message("This skill does not exist.", ephemeral=True)
+
+        main_skill_role = interaction.guild.get_role(
+            self.client.config["role_id"][f"{skill.lower()}_developer"]["main"]
+        )
+        stars_skill_role = interaction.guild.get_role(
+            self.client.config["role_id"][f"{skill.lower()}_developer"][stars]
+        )
+
+        await user.add_roles(main_skill_role, stars_skill_role)
+
+        await interaction.response.send_message(
+            f"You successfully added the {skill} skill with {stars} ⭐ to {user.mention}.", ephemeral=True
+        )
+
+    @skill_group.command(name="remove")
+    async def skill_remove(self, interaction: discord.Interaction, user: discord.Member, skill: str):
+        """Remove a skill from a user."""
+        if skill not in self.client.config["tickets"]:
+            return await interaction.response.send_message("This skill does not exist.", ephemeral=True)
+
+        roles_to_remove = []
+        main_skill_role = interaction.guild.get_role(
+            self.client.config["role_id"][f"{skill.lower()}_developer"]["main"]
+        )
+
+        roles_to_remove.append(main_skill_role)
+        for x in range(1, 4):
+            roles_to_remove.append(
+                interaction.guild.get_role(self.client.config["role_id"][f"{skill.lower()}_developer"][f"{x}"])
+            )
+
+        await user.remove_roles(*roles_to_remove)
+
+        await interaction.response.send_message(
+            f"You successfully removed the {skill} skill from {user.mention}.", ephemeral=True
+        )
+
+    @skill_add.autocomplete("skill")
+    @skill_remove.autocomplete("skill")
+    async def skill_autocomplete(self, interaction: discord.Interaction, current: str) -> List[Choice[str]]:
+        skills = list(self.client.config["tickets"].keys())
+        return [Choice(name=skill, value=skill) for skill in skills if current.lower() in skill.lower()]
 
 
 async def setup(client):
