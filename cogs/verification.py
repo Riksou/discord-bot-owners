@@ -1,7 +1,10 @@
 import asyncio
 import datetime
+import random
+import string
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from discord_bot_owners import DiscordBotOwners
@@ -92,7 +95,7 @@ class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
         self.message = message
 
         guild = client.get_guild(client.config["guild_id"])
-        roles = [guild.get_role(d) for d in client.config["role_id"]["bot_owner_roles"]]
+        roles = [guild.get_role(int(d)) for d in client.config["role_id"]["bot_owner_roles"]]
 
         options = [discord.SelectOption(label=role.name, value=str(role.id)) for role in roles]
         super().__init__(placeholder="Select a role...", options=options)
@@ -291,6 +294,52 @@ class LibraryDeveloperModal(discord.ui.Modal, title="Apply as a Library Develope
         await apply_verification_submit_actions(interaction, verification_embed)
 
 
+class BotTeamModal(discord.ui.Modal, title="Apply as a Bot Team Member"):
+
+    generator_user_id = discord.ui.TextInput(
+        label="Code Generator User ID",
+        style=discord.TextStyle.short,
+        placeholder="The user ID of the user who gave you the code."
+    )
+
+    code = discord.ui.TextInput(
+        label="Code",
+        style=discord.TextStyle.short
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        try:
+            user_id = int(self.generator_user_id.value)
+        except ValueError:
+            return await interaction.response.send_message("You must input a valid user ID.", ephemeral=True)
+
+        guild_member = await interaction.client.mongo.fetch_guild_member(user_id)
+
+        if self.code.value not in guild_member["verification_codes"]:
+            return await interaction.response.send_message("You have entered an invalid code.", ephemeral=True)
+
+        if guild_member["verification_codes"][self.code.value] is not None:
+            return await interaction.response.send_message(
+                "The code you have entered has already been used.", ephemeral=True
+            )
+
+        await interaction.client.mongo.update_guild_member_document(
+            interaction.user.id,
+            {"$set": {"verification_join_code": self.code.value, "verification_join_inviter": user_id}}
+        )
+        await interaction.client.mongo.update_guild_member_document(
+            user_id, {"$set": {f"verification_codes.{self.code.value}": interaction.user.id}}
+        )
+
+        bot_team_role = interaction.guild.get_role(interaction.client.config["role_id"]["bot_team"])
+
+        await interaction.response.send_message(
+            "You have successfully verified yourself as a bot team member.", ephemeral=True
+        )
+
+        await interaction.user.add_roles(bot_team_role)
+
+
 class VerificationView(discord.ui.View):
 
     def __init__(self):
@@ -309,6 +358,10 @@ class VerificationView(discord.ui.View):
             return
 
         await interaction.response.send_modal(LibraryDeveloperModal())
+
+    @discord.ui.button(label="Bot Team Member", style=discord.ButtonStyle.blurple, custom_id="persisten:bot_team")
+    async def bot_team(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        await interaction.response.send_modal(BotTeamModal())
 
 
 class Verification(commands.Cog):
@@ -346,6 +399,82 @@ class Verification(commands.Cog):
             {"$set": {"verification_message_id": msg.id, "verification_channel_id": channel.id}}
         )
         await self.client.reload_extension("cogs.verification")
+
+    """ Verification with code commands. """
+
+    @app_commands.command(name="codes")
+    async def codes(self, interaction: discord.Interaction):
+        """Show the codes you own to invite members from your bot team."""
+        if interaction.user.get_role(self.client.config["role_id"]["verified_bot_developer"]) is None:
+            return await interaction.response.send_message(
+                "You must be a verified bot owner to use this command.", ephemeral=True
+            )
+
+        guild_member = await self.client.mongo.fetch_guild_member(interaction.user.id)
+
+        total_codes = 0
+        for role in interaction.user.roles:
+            role_codes = self.client.config["role_id"]["bot_owner_roles"].get(str(role.id), 0)
+            total_codes += role_codes
+
+        if len(guild_member["verification_codes"]) < total_codes:
+            new_codes = total_codes - len(guild_member["verification_codes"])
+            for x in range(new_codes):
+                characters = string.ascii_letters + string.digits
+                code = "".join(random.choice(characters) for _ in range(6))
+                guild_member["verification_codes"][code] = None
+
+            await self.client.mongo.update_guild_member_document(
+                interaction.user.id, {"$set": {"verification_codes": guild_member["verification_codes"]}}
+            )
+
+        description = ""
+        for code, user_id in guild_member["verification_codes"].items():
+            member = interaction.guild.get_member(user_id)
+            member_formatted = "Unused"
+            if member is not None:
+                member_formatted = f"{member.mention} ({member})"
+            description += f"`{code}` - {member_formatted}\n"
+
+        if len(description) == 0:
+            description = "You don't have any codes for the moment, codes will be automatically unlocked when your " \
+                          "bot will reach more servers."
+        else:
+            description = "Invite members from your bot team using the following code(s):\n\n" + description
+
+        codes_embed = discord.Embed(
+            title="Codes",
+            description=description,
+            color=self.client.color
+        )
+
+        await interaction.response.send_message(embed=codes_embed, ephemeral=True)
+
+    @app_commands.command(name="kick-member")
+    async def kick_member(self, interaction: discord.Interaction, user: discord.Member):
+        """Kick a member of your bot team from this server."""
+        guild_member = await self.client.mongo.fetch_guild_member(interaction.user.id)
+        if user.id not in guild_member["verification_codes"].values():
+            return await interaction.response.send_message("You did not invite this user.", ephemeral=True)
+
+        await user.kick(reason=f"Kicked by {interaction.user} ({interaction.user.id}), from their bot team.")
+        await interaction.response.send_message(
+            f"You have successfully kicked {user.mention} from the server.", ephemeral=True
+        )
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        guild_member = await self.client.mongo.fetch_guild_member(member.id)
+        if guild_member["verification_join_code"] is None:
+            return
+
+        code = guild_member["verification_join_code"]
+        inviter_id = guild_member["verification_join_inviter"]
+
+        await self.client.mongo.update_guild_member_document(
+            member.id, {"$set": {"verification_join_code": None, "verification_join_inviter": None}}
+        )
+        await self.client.mongo.update_guild_member_document(inviter_id, {"$set": {f"verification_codes.{code}": None}})
 
 
 async def setup(client):

@@ -21,6 +21,9 @@ class MongoDB(commands.Cog):
         "_id": 0,
         "verification_pending": False,
         "verification_cooldown": None,
+        "verification_codes": {},
+        "verification_join_code": None,
+        "verification_join_inviter": None,
         "exp": 0,
         "level": 1
     }
