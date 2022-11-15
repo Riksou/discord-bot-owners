@@ -331,7 +331,7 @@ class BotTeamModal(discord.ui.Modal, title="Apply as a Bot Team Member"):
             user_id, {"$set": {f"verification_codes.{self.code.value}": interaction.user.id}}
         )
 
-        bot_team_role = interaction.guild.get_role(interaction.client.config["role_id"]["bot_team"])
+        bot_team_role = interaction.guild.get_role(interaction.client.config["role_id"]["bot_team_member"])
 
         await interaction.response.send_message(
             "You have successfully verified yourself as a bot team member.", ephemeral=True
