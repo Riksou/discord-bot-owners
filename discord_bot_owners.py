@@ -35,6 +35,8 @@ class DiscordBotOwners(commands.Bot):
         self.tickets = {d: {} for d in self.config["tickets"]}
         self.tickets["Support"] = {}
 
+        self.current_verifications = {}
+
         self.color = 0x5865F2
         self.green = 0x04d277
         self.red = 0xE24C4B

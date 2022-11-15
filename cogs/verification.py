@@ -1,9 +1,88 @@
+import asyncio
+import datetime
+
 import discord
 from discord.ext import commands
 
 from discord_bot_owners import DiscordBotOwners
 
 """ Verification views. """
+
+
+async def accept_verification(interaction: discord.Interaction, member: discord.Member,
+                              message: discord.Message) -> None:
+    await interaction.client.mongo.update_guild_member_document(
+        member.id, {"$set": {"verification_pending": False, "verification_cooldown": None}}
+    )
+    await interaction.client.mongo.update_guild_data_document(
+        {"$unset": {f"pending_verification_message_ids.{message.id}": ""}}
+    )
+
+    embed = message.embeds[0]
+
+    embed.set_field_at(len(embed.fields) - 1, name="Status", value="Accepted.")
+    embed.colour = interaction.client.green
+    await message.edit(embed=embed, view=None)
+
+    await interaction.response.send_message(f"You accepted the verification for {member.mention}.", ephemeral=True)
+
+    general_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["general"])
+    await general_channel.send(f"Welcome {member.mention} in Discord Bot Owners!")
+
+    accepted_embed = discord.Embed(
+        title="Verification Accepted",
+        description="Your verification to enter Discord Bot Owners has been accepted.",
+        color=interaction.client.color,
+        timestamp=discord.utils.utcnow()
+    )
+
+    try:
+        await member.send(embed=accepted_embed)
+    except discord.HTTPException:
+        pass
+
+
+async def is_on_cooldown(interaction: discord.Interaction) -> bool:
+    guild_member = await interaction.client.mongo.fetch_guild_member(interaction.user.id)
+    if guild_member["verification_pending"] is True:
+        await interaction.response.send_message(
+            "Your verification request is already pending.", ephemeral=True
+        )
+        return True
+
+    now = datetime.datetime.now()
+    cooldown = guild_member["verification_cooldown"]
+    if cooldown is not None and cooldown > now:
+        remaining = discord.utils.format_dt(cooldown, "R")
+        await interaction.response.send_message(
+            f"You are on cooldown for the verification system, please try again {remaining}.", ephemeral=True
+        )
+        return True
+
+    return False
+
+
+async def apply_verification_submit_actions(interaction: discord.Interaction,
+                                            verification_embed: discord.Embed) -> None:
+    verification_requests_channel = interaction.guild.get_channel(
+        interaction.client.config["channel_id"]["verification_requests"]
+    )
+    pending_verification_message_id = await verification_requests_channel.send(
+        embed=verification_embed, view=PendingVerificationView()
+    )
+
+    cooldown = datetime.datetime.now() + datetime.timedelta(hours=1)
+    await interaction.client.mongo.update_guild_member_document(
+        interaction.user.id,
+        {"$set": {"verification_pending": True, "verification_cooldown": cooldown}}
+    )
+    await interaction.client.mongo.update_guild_data_document(
+        {"$set": {f"pending_verification_message_ids.{pending_verification_message_id.id}": interaction.user.id}}
+    )
+
+    await interaction.response.send_message(
+        "Thanks for your request, please wait while we review your application.", ephemeral=True
+    )
 
 
 class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
@@ -26,36 +105,7 @@ class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
 
         await self.member.add_roles(role, verified_bot_developer_role)
 
-        await interaction.client.mongo.update_guild_member_document(
-            self.member.id, {"$set": {"verification_pending": False}}
-        )
-        await interaction.client.mongo.update_guild_data_document(
-            {"$unset": {f"pending_verification_message_ids.{self.message.id}": ""}}
-        )
-
-        embed = self.message.embeds[0]
-        embed.set_field_at(5, name="Status", value="Accepted.")
-        embed.colour = interaction.client.green
-        await self.message.edit(embed=embed, view=None)
-
-        await interaction.response.send_message(
-            f"You accepted the verification for {self.member.mention}.", ephemeral=True
-        )
-
-        general_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["general"])
-        await general_channel.send(f"Welcome {self.member.mention} in Discord Bot Owners!")
-
-        accepted_embed = discord.Embed(
-            title="Verification Accepted",
-            description="Your verification to enter Discord Bot Owners has been accepted.",
-            color=interaction.client.color,
-            timestamp=discord.utils.utcnow()
-        )
-
-        try:
-            await self.member.send(embed=accepted_embed)
-        except discord.HTTPException:
-            pass
+        await accept_verification(interaction, self.member, self.message)
 
 
 class DeniedBotOwnerVerificationModal(discord.ui.Modal, title="Deny Verification"):
@@ -73,7 +123,7 @@ class DeniedBotOwnerVerificationModal(discord.ui.Modal, title="Deny Verification
     async def on_submit(self, interaction: discord.Interaction):
         embed = self.message.embeds[0]
 
-        embed.set_field_at(5, name="Status", value="Denied.")
+        embed.set_field_at(len(embed.fields) - 1, name="Status", value="Denied.")
         embed.add_field(name="Reason", value=self.reason.value)
         embed.colour = interaction.client.red
         await self.message.edit(embed=embed, view=None)
@@ -123,13 +173,16 @@ class PendingVerificationView(discord.ui.View):
         embed = interaction.message.embeds[0]
 
         if member is None:
-            embed.set_field_at(5, name="Status", value="User left.")
+            embed.set_field_at(len(embed.fields) - 1, name="Status", value="User left.")
             await interaction.message.edit(embed=embed, view=None)
             return await interaction.response.send_message("The user left the server.")
 
-        view = discord.ui.View()
-        view.add_item(AcceptedBotOwnerVerificationSelect(interaction.client, member, interaction.message))
-        await interaction.response.send_message(view=view, ephemeral=True)
+        if len(embed.fields) == 5:
+            view = discord.ui.View()
+            view.add_item(AcceptedBotOwnerVerificationSelect(interaction.client, member, interaction.message))
+            await interaction.response.send_message(view=view, ephemeral=True)
+        else:
+            await accept_verification(interaction, member, interaction.message)
 
     @discord.ui.button(label="Deny", style=discord.ButtonStyle.red, custom_id="persisten:deny")
     async def deny(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -162,14 +215,24 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
         max_length=1024
     )
 
-    ownership_proof = discord.ui.TextInput(
-        label="Proof of Ownership",
-        style=discord.TextStyle.paragraph,
-        placeholder="Show us a Discord Developer Portal screenshot with you owning the bot",
-        max_length=1024
-    )
-
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+            "Thank you for completing this modal, you now have 5 minutes to show a proof of you owning the bot. We "
+            "highly recommend you to send a screenshot of the Discord Developer Portal showing you owning the bot.\n\n"
+            "**Send the screenshot in the bot's DMs.**",
+            ephemeral=True
+        )
+
+        def check(m: discord.Message):
+            return interaction.user.id == m.user.id and m.guild is None and len(m.attachments) > 0
+
+        try:
+            msg: discord.Message = await interaction.client.wait_for("message", timeout=300.0, check=check)
+        except asyncio.TimeoutError:
+            return await interaction.followup.send(
+                "You did not send any proof of you owning the bot, aborting the verification."
+            )
+
         verification_embed = discord.Embed(
             title="Bot Owner Verification Request",
             description=f"{interaction.user.mention} ({interaction.user}) is wanting to enter the server.",
@@ -181,28 +244,51 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
         verification_embed.add_field(name="Guild Count", value=self.guild_count.value)
         verification_embed.add_field(name="Support Server Invite", value=self.support_server_invite.value)
         verification_embed.add_field(name="OAuth URL", value=self.oauth_url.value, inline=False)
-        verification_embed.add_field(name="Proof of Ownership", value=self.ownership_proof.value, inline=False)
         verification_embed.add_field(name="Status", value="Pending", inline=False)
 
         verification_embed.set_thumbnail(url=interaction.user.display_avatar)
 
-        verification_requests_channel = interaction.guild.get_channel(
-            interaction.client.config["channel_id"]["verification_requests"]
-        )
-        pending_verification_message_id = await verification_requests_channel.send(
-            embed=verification_embed, view=PendingVerificationView()
+        verification_embed.set_image(url=msg.attachments[0].url)
+
+        await apply_verification_submit_actions(interaction, verification_embed)
+
+
+class LibraryDeveloperModal(discord.ui.Modal, title="Apply as a Library Developer"):
+
+    name = discord.ui.TextInput(
+        label="Library's Name",
+        style=discord.TextStyle.short,
+        max_length=1024
+    )
+
+    github_link = discord.ui.TextInput(
+        label="Library's GitHub link",
+        style=discord.TextStyle.short,
+        max_length=1024
+    )
+
+    support_server_invite = discord.ui.TextInput(
+        label="Library's Support Server Invite URL",
+        style=discord.TextStyle.short,
+        max_length=1024
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        verification_embed = discord.Embed(
+            title="Library Developer Verification Request",
+            description=f"{interaction.user.mention} ({interaction.user}) is wanting to enter the server.",
+            color=interaction.client.color,
+            timestamp=discord.utils.utcnow()
         )
 
-        await interaction.client.mongo.update_guild_member_document(
-            interaction.user.id, {"$set": {"verification_pending": True}}
-        )
-        await interaction.client.mongo.update_guild_data_document(
-            {"$set": {f"pending_verification_message_ids.{pending_verification_message_id.id}": interaction.user.id}}
-        )
+        verification_embed.add_field(name="Library Name", value=self.name.value, inline=False)
+        verification_embed.add_field(name="GitHub Link", value=self.github_link.value, inline=False)
+        verification_embed.add_field(name="Support Server Invite", value=self.support_server_invite.value, inline=False)
+        verification_embed.add_field(name="Status", value="Pending", inline=False)
 
-        await interaction.response.send_message(
-            "Thanks for your request, please wait while we review your application.", ephemeral=True
-        )
+        verification_embed.set_thumbnail(url=interaction.user.display_avatar)
+
+        await apply_verification_submit_actions(interaction, verification_embed)
 
 
 class VerificationView(discord.ui.View):
@@ -212,17 +298,17 @@ class VerificationView(discord.ui.View):
 
     @discord.ui.button(label="Bot Owner", style=discord.ButtonStyle.blurple, custom_id="persisten:bot_owner")
     async def bot_owner(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        guild_member = await interaction.client.mongo.fetch_guild_member(interaction.user.id)
-        if guild_member["verification_pending"] is True:
-            return await interaction.response.send_message(
-                "Your verification request is already pending.", ephemeral=True
-            )
+        if await is_on_cooldown(interaction) is True:
+            return
 
         await interaction.response.send_modal(BotOwnerModal())
 
     @discord.ui.button(label="Library Developer", style=discord.ButtonStyle.blurple, custom_id="persisten:lib_dev")
     async def library_developer(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        await interaction.response.send_message("This option is currently being worked on.", ephemeral=True)
+        if await is_on_cooldown(interaction) is True:
+            return
+
+        await interaction.response.send_modal(LibraryDeveloperModal())
 
 
 class Verification(commands.Cog):

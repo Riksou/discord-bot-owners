@@ -20,6 +20,7 @@ class MongoDB(commands.Cog):
     DEFAULT_GUILD_MEMBER = {
         "_id": 0,
         "verification_pending": False,
+        "verification_cooldown": None,
         "exp": 0,
         "level": 1
     }
