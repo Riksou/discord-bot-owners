@@ -303,9 +303,9 @@ class LibraryDeveloperModal(discord.ui.Modal, title="Apply as a Library Develope
 class BotTeamModal(discord.ui.Modal, title="Apply as a Bot Team Member"):
 
     generator_user_id = discord.ui.TextInput(
-        label="Code Generator User ID",
+        label="Code Owner's ID",
         style=discord.TextStyle.short,
-        placeholder="The user ID of the user who gave you the code."
+        placeholder="The ID of the user who gave you the code."
     )
 
     code = discord.ui.TextInput(
@@ -443,8 +443,8 @@ class Verification(commands.Cog):
             description += f"`{code}` - {member_formatted}\n"
 
         if len(description) == 0:
-            description = "You don't have any codes for the moment, codes will be automatically unlocked when your " \
-                          "bot will reach more servers."
+            description = "You currently aren't qualified for any staff codes. Staff codes will be automatically " \
+                          "unlocked when your bot reaches more servers."
         else:
             description = "Invite members from your bot team using the following code(s):\n\n" + description
 
