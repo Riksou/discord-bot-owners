@@ -239,7 +239,7 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
             msg: discord.Message = await interaction.client.wait_for("message", timeout=300.0, check=check)
         except asyncio.TimeoutError:
             return await interaction.followup.send(
-                "You did not send any proof of you owning the bot, aborting the verification."
+                "You did not send any proof of you owning the bot, aborting the verification.", ephemeral=True
             )
 
         try:

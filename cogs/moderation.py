@@ -184,7 +184,7 @@ class Moderation(commands.Cog):
         else:
             deleted = await interaction.channel.purge(limit=amount, before=before)
 
-        await interaction.followup.send(f"You successfully deleted {len(deleted)} messages.")
+        await interaction.followup.send(f"You successfully deleted {len(deleted)} messages.", ephemeral=True)
 
 
 async def setup(client):
