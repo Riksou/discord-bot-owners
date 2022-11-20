@@ -233,7 +233,7 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
         )
 
         def check(m: discord.Message):
-            return interaction.user.id == m.user.id and m.guild is None and len(m.attachments) > 0
+            return interaction.user.id == m.author.id and m.guild is None and len(m.attachments) > 0
 
         try:
             msg: discord.Message = await interaction.client.wait_for("message", timeout=300.0, check=check)
