@@ -242,6 +242,11 @@ class BotOwnerModal(discord.ui.Modal, title="Apply as a Bot Owner"):
                 "You did not send any proof of you owning the bot, aborting the verification."
             )
 
+        try:
+            await interaction.user.send("The verification request has been sent.")
+        except discord.HTTPException:
+            pass
+
         verification_embed = discord.Embed(
             title="Bot Owner Verification Request",
             description=f"{interaction.user.mention} ({interaction.user}) is wanting to enter the server.",
