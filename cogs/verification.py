@@ -30,7 +30,7 @@ async def accept_verification(interaction: discord.Interaction, member: discord.
     await interaction.response.send_message(f"You accepted the verification for {member.mention}.", ephemeral=True)
 
     general_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["general"])
-    await general_channel.send(f"Welcome {member.mention} in Discord Bot Owners!")
+    await general_channel.send(f"Welcome {member.mention} to Discord Bot Owners!")
 
     accepted_embed = discord.Embed(
         title="Verification Accepted",
