@@ -16,7 +16,9 @@ class MongoDB(commands.Cog):
         "verification_message_id": None,
         "pending_verification_message_ids": {},
         "auto_roles_channel_id": None,
-        "auto_roles_message_id": None
+        "auto_roles_message_id": None,
+        "ads": [],
+        "pending_ad_message_ids": {}
     }
 
     DEFAULT_GUILD_MEMBER = {
@@ -27,7 +29,9 @@ class MongoDB(commands.Cog):
         "verification_join_code": None,
         "verification_join_inviter": None,
         "exp": 0,
-        "level": 1
+        "level": 1,
+        "ad_pending": False,
+        "ad_listed": False
     }
 
     def __init__(self, client: DiscordBotOwners):

@@ -54,7 +54,9 @@
     "ticket_logs": 931994006265667654,
     "staff_logs": 931994006265667654,
     "verification_requests": 1041449847909261352,
-    "general": 1040734156327501905
+    "general": 1040734156327501905,
+    "ads_verification": 1041449847909261352,
+    "verified_promotions": 1044755421388345384
   },
   "category_id": {
     "tickets": 1041100860991733790
