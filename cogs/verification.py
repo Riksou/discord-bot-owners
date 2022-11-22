@@ -178,7 +178,10 @@ class PendingVerificationView(discord.ui.View):
         if member is None:
             embed.set_field_at(len(embed.fields) - 1, name="Status", value="User left.")
             await interaction.message.edit(embed=embed, view=None)
-            return await interaction.response.send_message("The user left the server.")
+            await interaction.client.mongo.update_guild_member_document(
+                member.id, {"$set": {"verification_pending": False}}
+            )
+            return await interaction.response.send_message("The user left the server.", ephemeral=True)
 
         if len(embed.fields) == 5:
             view = discord.ui.View()
