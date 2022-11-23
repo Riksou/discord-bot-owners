@@ -169,11 +169,6 @@ class Advertisements(commands.Cog):
     async def post_advertisement(self) -> None:
         guild_data = await self.client.mongo.fetch_guild_data()
 
-        if len(guild_data["ads"]) == 0:
-            await asyncio.sleep(60)
-            self.post_advertisement.restart()
-            return
-
         ad_to_post = guild_data["ads"][0]
 
         await self.client.mongo.update_guild_data_document({"$pull": {"ads": ad_to_post}})
