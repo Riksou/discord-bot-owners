@@ -1,0 +1,4 @@
+[tool.pyright]
+typeCheckingMode = "off"
+
+stubPath = "."

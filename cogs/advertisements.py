@@ -183,16 +183,13 @@ class Advertisements(commands.Cog):
 
         guild = self.client.get_guild(self.client.config["guild_id"])
         member = guild.get_member(ad_to_post["user_id"])
+        wh = discord.Webhook.from_url(self.client.config["verified_promotions_webhook"], session=self.client.session)
 
-        author = f"Sent by: {ad_to_post['user_id']}"
+        author, avatar = f"Submitted by: {ad_to_post['user_id']}", self.client.user.display_avatar.url
         if member is not None and len(str(member)) <= 70:
-            author = f"Sent by: {member}"
+            author, avatar = member.display_name, member.display_avatar.url
 
-        verified_promotions_channel = self.client.get_channel(self.client.config["channel_id"]["verified_promotions"])
-
-        button_view = discord.ui.View()
-        button_view.add_item(item=discord.ui.Button(label=author, disabled=True))
-        await verified_promotions_channel.send(ad_to_post["content"], view=button_view)
+        await wh.send(ad_to_post["content"], username=author, avatar_url=avatar)
 
     @post_advertisement.before_loop
     async def post_advertisement_before_loop(self) -> None:

@@ -4,6 +4,7 @@ import json
 import os
 from typing import Optional, TYPE_CHECKING
 
+import aiohttp
 import discord
 from discord.ext import commands
 
@@ -55,6 +56,8 @@ class DiscordBotOwners(commands.Bot):
     """ Setup actions. """
 
     async def setup_hook(self) -> None:
+        self.session = aiohttp.ClientSession()
+
         self.loop.create_task(self.ready_actions())
 
         for filename in os.listdir("./cogs"):
@@ -69,6 +72,10 @@ class DiscordBotOwners(commands.Bot):
         guild = discord.Object(id=self.config["guild_id"])
         self.tree.copy_global_to(guild=guild)
         await self.tree.sync(guild=guild)
+
+    async def close(self) -> None:
+        await self.session.close()
+        await super().close()
 
 
 if __name__ == "__main__":
