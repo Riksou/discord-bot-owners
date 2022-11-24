@@ -182,7 +182,7 @@ class Tickets(commands.Cog):
         for ticket_category, tickets in guild_data["tickets"].items():
             for usr_id, channel_id in tickets.items():
                 if channel_id == interaction.channel.id:
-                    user_id = usr_id
+                    user_id = int(usr_id)
                     category = ticket_category
                     break
 
