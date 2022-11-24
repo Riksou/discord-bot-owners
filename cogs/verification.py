@@ -84,9 +84,11 @@ async def apply_verification_submit_actions(interaction: discord.Interaction,
         {"$set": {f"pending_verification_message_ids.{pending_verification_message_id.id}": interaction.user.id}}
     )
 
-    await interaction.response.send_message(
-        "Thanks for your request, please wait while we review your application.", ephemeral=True
-    )
+    confirmation_message = "Thanks for your request, please wait while we review your application."
+    if interaction.response.is_done():
+        await interaction.followup.send(confirmation_message, ephemeral=True)
+    else:
+        await interaction.response.send_message(confirmation_message, ephemeral=True)
 
 
 class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
