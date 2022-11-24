@@ -36,8 +36,6 @@ class DiscordBotOwners(commands.Bot):
         self.aiosession = None
         self.verified_promotions_webhook = None
 
-        self.current_verifications = {}
-
         self.color = 0x5865F2
         self.green = 0x04d277
         self.red = 0xE24C4B
