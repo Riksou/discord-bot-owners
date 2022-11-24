@@ -99,10 +99,6 @@ class TicketsDropdown(discord.ui.Select):
         super().__init__(placeholder="Select a category...", options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        category = self.values[0]
-        if category == "Others":
-            return await create_ticket(interaction, category)
-
         return await interaction.response.send_modal(TicketCreationModal(self.values[0]))
 
 
