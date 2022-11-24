@@ -1,4 +1,4 @@
-import asyncio
+import datetime
 
 import discord
 from discord import app_commands
@@ -165,34 +165,33 @@ class Advertisements(commands.Cog):
     async def cog_unload(self) -> None:
         self.post_advertisement.stop()
 
-    @tasks.loop(hours=6)
+    @tasks.loop(minutes=1)
     async def post_advertisement(self) -> None:
+        now = datetime.datetime.utcnow()
+        if now.hour not in {0, 12} or now.minute != 0:
+            return
+
         guild_data = await self.client.mongo.fetch_guild_data()
 
         if len(guild_data["ads"]) == 0:
-            await asyncio.sleep(60)
-            self.post_advertisement.restart()
             return
 
         ad_to_post = guild_data["ads"][0]
 
         await self.client.mongo.update_guild_data_document({"$pull": {"ads": ad_to_post}})
-        await self.client.mongo.update_guild_member_document(
-            ad_to_post["user_id"], {"$set": {"ad_listed": False}}
-        )
+        await self.client.mongo.update_guild_member_document(ad_to_post["user_id"], {"$set": {"ad_listed": False}})
 
         guild = self.client.get_guild(self.client.config["guild_id"])
         member = guild.get_member(ad_to_post["user_id"])
 
-        author = f"Sent by: {ad_to_post['user_id']}"
-        if member is not None and len(str(member)) <= 70:
-            author = f"Sent by: {member}"
+        if member is None:
+            return
 
-        verified_promotions_channel = self.client.get_channel(self.client.config["channel_id"]["verified_promotions"])
-
-        button_view = discord.ui.View()
-        button_view.add_item(item=discord.ui.Button(label=author, disabled=True))
-        await verified_promotions_channel.send(ad_to_post["content"], view=button_view)
+        await self.client.verified_promotions_webhook.send(
+            ad_to_post["content"],
+            username=member.name,
+            avatar_url=member.display_avatar.url
+        )
 
     @post_advertisement.before_loop
     async def post_advertisement_before_loop(self) -> None:

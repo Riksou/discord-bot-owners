@@ -2,6 +2,7 @@
   "bot_token": "",
   "guild_id": 596978185422372866,
   "mongodb_uri": "mongodb://127.0.0.1/",
+  "verified_promotions_webhook_url": "",
   "tickets": {
     "Python": ["Request an evaluation of your Python skills.", "<:python:1040766009319100546>", "py"],
     "JavaScript": ["Request an evaluation of your JavaScript skills.", "<:javascript:1040765775394377868>", "js"],
@@ -55,8 +56,7 @@
     "staff_logs": 931994006265667654,
     "verification_requests": 1041449847909261352,
     "general": 1040734156327501905,
-    "ads_verification": 1041449847909261352,
-    "verified_promotions": 1044755421388345384
+    "ads_verification": 1041449847909261352
   },
   "category_id": {
     "tickets": 1041100860991733790

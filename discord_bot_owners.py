@@ -4,6 +4,7 @@ import json
 import os
 from typing import Optional, TYPE_CHECKING
 
+import aiohttp
 import discord
 from discord.ext import commands
 
@@ -32,6 +33,9 @@ class DiscordBotOwners(commands.Bot):
 
         self.config = config
 
+        self.aiosession = None
+        self.verified_promotions_webhook = None
+
         self.tickets = {d: {} for d in self.config["tickets"]}
         self.tickets["Support"] = {}
 
@@ -56,6 +60,11 @@ class DiscordBotOwners(commands.Bot):
 
     async def setup_hook(self) -> None:
         self.loop.create_task(self.ready_actions())
+
+        self.aiosession = aiohttp.ClientSession(loop=self.loop)
+        self.verified_promotions_webhook = discord.Webhook.from_url(
+            self.config["verified_promotions_webhook_url"], session=self.aiosession
+        )
 
         for filename in os.listdir("./cogs"):
             if filename.endswith(".py"):
