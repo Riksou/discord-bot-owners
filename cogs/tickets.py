@@ -13,7 +13,7 @@ from discord_bot_owners import DiscordBotOwners
 async def create_ticket(interaction: discord.Interaction, category: str, stars: str = None) -> None:
     guild_data = await interaction.client.mongo.fetch_guild_data()
     if category in guild_data["tickets"]:
-        current_ticket_id = guild_data["tickets"][category].get(interaction.user.id)
+        current_ticket_id = guild_data["tickets"][category].get(str(interaction.user.id))
         if current_ticket_id is not None:
             return await interaction.response.send_message(
                 f"You already have a ticket opened in this category, <#{current_ticket_id}>.", ephemeral=True
