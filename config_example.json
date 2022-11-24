@@ -10,6 +10,7 @@
     "Rust": ["Request an evaluation of your Rust skills.", "<:Rust:861119790924038154>", "rust"]
   },
   "role_id": {
+    "verified_member": 1045477527486996530,
     "manager": 600963244622086146,
     "verified_bot_developer": 820752105081798656,
     "promotions": 1041829549337481366,

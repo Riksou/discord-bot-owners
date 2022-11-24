@@ -106,8 +106,9 @@ class AcceptedBotOwnerVerificationSelect(discord.ui.Select):
         verified_bot_developer_role = interaction.guild.get_role(
             interaction.client.config["role_id"]["verified_bot_developer"]
         )
+        verified_member = interaction.guild.get_role(interaction.client.config["role_id"]["verified_member"])
 
-        await self.member.add_roles(role, verified_bot_developer_role)
+        await self.member.add_roles(role, verified_bot_developer_role, verified_member)
 
         await accept_verification(interaction, self.member, self.message)
 
@@ -189,11 +190,10 @@ class PendingVerificationView(discord.ui.View):
             view.add_item(AcceptedBotOwnerVerificationSelect(interaction.client, member, interaction.message))
             await interaction.response.send_message(view=view, ephemeral=True)
         else:
-            library_developer = interaction.guild.get_role(
-                interaction.client.config["role_id"]["library_developer"]
-            )
+            library_developer = interaction.guild.get_role(interaction.client.config["role_id"]["library_developer"])
+            verified_member = interaction.guild.get_role(interaction.client.config["role_id"]["verified_member"])
 
-            await interaction.user.add_roles(library_developer)
+            await interaction.user.add_roles(library_developer, verified_member)
 
             await accept_verification(interaction, member, interaction.message)
 
@@ -347,12 +347,13 @@ class BotTeamModal(discord.ui.Modal, title="Apply as a Bot Team Member"):
         )
 
         bot_team_role = interaction.guild.get_role(interaction.client.config["role_id"]["bot_team_member"])
+        verified_member = interaction.guild.get_role(interaction.client.config["role_id"]["verified_member"])
 
         await interaction.response.send_message(
             "You have successfully verified yourself as a bot team member.", ephemeral=True
         )
 
-        await interaction.user.add_roles(bot_team_role)
+        await interaction.user.add_roles(bot_team_role, verified_member)
 
 
 class VerificationView(discord.ui.View):
