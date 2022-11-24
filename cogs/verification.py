@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import random
 import string
+from typing import Optional
 
 import discord
 from discord import app_commands
@@ -464,17 +465,56 @@ class Verification(commands.Cog):
 
         await interaction.response.send_message(embed=codes_embed, ephemeral=True)
 
-    @app_commands.command(name="kick-member")
-    async def kick_member(self, interaction: discord.Interaction, user: discord.Member):
-        """Kick a member of your bot team from this server."""
+    """ Team commands. """
+
+    team_group = app_commands.Group(name="team", description="Manage your team on the server.")
+
+    @team_group.command(name="remove")
+    async def team_remove(self, interaction: discord.Interaction, user: discord.Member):
+        """Remove a member of your bot team from this server."""
         guild_member = await self.client.mongo.fetch_guild_member(interaction.user.id)
         if user.id not in guild_member["verification_codes"].values():
             return await interaction.response.send_message("You did not invite this user.", ephemeral=True)
 
-        await user.kick(reason=f"Kicked by {interaction.user} ({interaction.user.id}), from their bot team.")
+        await user.kick(reason=f"Removed by {interaction.user} ({interaction.user.id}), from their bot team.")
         await interaction.response.send_message(
-            f"You have successfully kicked {user.mention} from the server.", ephemeral=True
+            f"You have successfully removed {user.mention} from your team.", ephemeral=True
         )
+
+    @team_group.command(name="view")
+    async def team_view(self, interaction: discord.Interaction, user: Optional[discord.Member]):
+        """View the team of a bot owner in this server."""
+        if user.get_role(self.client.config["role_id"]["verified_bot_developer"]) is None:
+            return await interaction.response.send_message(
+                "The user you provided is not a verified bot owner.", ephemeral=True
+            )
+
+        guild_member = await self.client.mongo.fetch_guild_member(user.id)
+
+        invited_members = ""
+        for code, user_id in guild_member["verification_codes"].items():
+            if user_id is None:
+                continue
+
+            team_member = interaction.guild.get_member(user_id)
+            invited_members += f"- {team_member.mention}\n"
+
+        if len(invited_members) == 0:
+            return await interaction.response.send_message(
+                "This member has not invited anyone from their team to this server.."
+            )
+
+        team_view_embed = discord.Embed(
+            title="Team View",
+            description=f"The following users are part of {user.mention}'s team:\n\n"
+                        f"{invited_members}",
+            color=self.client.color,
+            timestamp=discord.utils.utcnow()
+        )
+
+        await interaction.response.send_message(embed=team_view_embed)
+
+    """ Invited member remove handling. """
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
