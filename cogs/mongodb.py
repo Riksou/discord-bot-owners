@@ -12,6 +12,7 @@ class MongoDB(commands.Cog):
         "_id": 0,
         "tickets_channel_id": None,
         "tickets_message_id": None,
+        "tickets": {},
         "verification_channel_id": None,
         "verification_message_id": None,
         "pending_verification_message_ids": {},

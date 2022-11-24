@@ -11,11 +11,13 @@ from discord_bot_owners import DiscordBotOwners
 
 
 async def create_ticket(interaction: discord.Interaction, category: str, stars: str = None) -> None:
-    current_ticket_id = interaction.client.tickets[category].get(interaction.user.id)
-    if current_ticket_id is not None:
-        return await interaction.response.send_message(
-            f"You already have a ticket opened in this category, <#{current_ticket_id}>.", ephemeral=True
-        )
+    guild_data = await interaction.client.mongo.fetch_guild_data()
+    if category in guild_data["tickets"]:
+        current_ticket_id = guild_data["tickets"][category].get(interaction.user.id)
+        if current_ticket_id is not None:
+            return await interaction.response.send_message(
+                f"You already have a ticket opened in this category, <#{current_ticket_id}>.", ephemeral=True
+            )
 
     if stars is not None and stars not in {"1", "2", "3"}:
         return await interaction.response.send_message(
@@ -45,7 +47,9 @@ async def create_ticket(interaction: discord.Interaction, category: str, stars: 
         ticket_name, overwrites=overwrites, category=tickets_category
     )
 
-    interaction.client.tickets[category][interaction.user.id] = ticket_channel.id
+    await interaction.client.mongo.update_guild_data_document(
+        {"$set": {f"tickets.{category}.{interaction.user.id}": ticket_channel.id}}
+    )
 
     ticket_embed = discord.Embed(
         title=f"Ticket",
@@ -171,9 +175,11 @@ class Tickets(commands.Cog):
         overwrites = {interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False)}
         await interaction.channel.edit(overwrites=overwrites)
 
+        guild_data = await self.client.mongo.fetch_guild_data()
+
         user_id = None
         category = None
-        for ticket_category, tickets in self.client.tickets.items():
+        for ticket_category, tickets in guild_data["tickets"].items():
             for usr_id, channel_id in tickets.items():
                 if channel_id == interaction.channel.id:
                     user_id = usr_id
@@ -188,7 +194,7 @@ class Tickets(commands.Cog):
             return
 
         try:
-            del self.client.tickets[category][user_id]
+            await self.client.mongo.update_guild_data_document({"$unset": {f"tickets.{category}.{user_id}": ""}})
         except KeyError:
             # It's a race condition if we're here.
             pass

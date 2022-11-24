@@ -36,9 +36,6 @@ class DiscordBotOwners(commands.Bot):
         self.aiosession = None
         self.verified_promotions_webhook = None
 
-        self.tickets = {d: {} for d in self.config["tickets"]}
-        self.tickets["Support"] = {}
-
         self.current_verifications = {}
 
         self.color = 0x5865F2
