@@ -173,12 +173,9 @@ class Advertisements(commands.Cog):
 
         guild_data = await self.client.mongo.fetch_guild_data()
 
-<<<<<<< HEAD
         if len(guild_data["ads"]) == 0:
             return
 
-=======
->>>>>>> master
         ad_to_post = guild_data["ads"][0]
 
         await self.client.mongo.update_guild_data_document({"$pull": {"ads": ad_to_post}})
