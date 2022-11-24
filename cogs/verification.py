@@ -488,7 +488,7 @@ class Verification(commands.Cog):
         await self.client.mongo.update_guild_member_document(
             member.id, {"$set": {"verification_join_code": None, "verification_join_inviter": None}}
         )
-        await self.client.mongo.update_guild_member_document(inviter_id, {"$set": {f"verification_codes.{code}": None}})
+        await self.client.mongo.update_guild_member_document(inviter_id, {"$unset": {f"verification_codes.{code}": ""}})
 
 
 async def setup(client):
