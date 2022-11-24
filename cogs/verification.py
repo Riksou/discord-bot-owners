@@ -487,6 +487,9 @@ class Verification(commands.Cog):
     @team_group.command(name="view")
     async def team_view(self, interaction: discord.Interaction, user: Optional[discord.Member]):
         """View the team of a bot owner in this server."""
+        if user is None:
+            user = interaction.user
+
         if user.get_role(self.client.config["role_id"]["verified_bot_developer"]) is None:
             return await interaction.response.send_message(
                 "The user you provided is not a verified bot owner.", ephemeral=True
@@ -504,7 +507,7 @@ class Verification(commands.Cog):
 
         if len(invited_members) == 0:
             return await interaction.response.send_message(
-                "This member has not invited anyone from their team to this server.."
+                "This member has not invited anyone from their team to this server."
             )
 
         team_view_embed = discord.Embed(
