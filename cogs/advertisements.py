@@ -36,7 +36,7 @@ class DeniedAdvertisementApplicationModal(discord.ui.Modal, title="Deny Advertis
         )
 
         await interaction.response.send_message(
-            f"You have denied {interaction.user.mention}'s advertisement application.", ephemeral=True
+            f"You have denied <@{user_id}>'s advertisement application.", ephemeral=True
         )
 
         if member is not None:
