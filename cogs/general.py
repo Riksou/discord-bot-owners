@@ -64,6 +64,34 @@ class AutoRolesView(discord.ui.View):
             )
 
 
+class SuggestModal(discord.ui.Modal, title="Suggestion"):
+
+    suggestion = discord.ui.TextInput(
+        label="Suggestion",
+        style=discord.TextStyle.paragraph,
+        max_length=4096,
+        placeholder="Type your suggestion here..."
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        suggestion_embed = discord.Embed(
+            title="Suggestion",
+            description=self.suggestion.value,
+            color=interaction.client.color,
+            timestamp=discord.utils.utcnow()
+        )
+
+        suggestion_embed.set_footer(text=f"{interaction.user}", icon_url=interaction.user.avatar.url)
+
+        suggestion_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["suggestions"])
+
+        message = await suggestion_channel.send(embed=suggestion_embed)
+        await message.add_reaction("<:check:1046183403877302364>")
+        await message.add_reaction("<:cross:1046183402358964236>")
+
+        await interaction.response.send_message("Your suggestion has been submitted.", ephemeral=True)
+
+
 class General(commands.Cog):
     """The general cog, managing different features of the bot."""
 
@@ -149,6 +177,13 @@ class General(commands.Cog):
         )
 
         await interaction.response.send_message(embed=level_embed)
+
+    """ Suggestions system. """
+
+    @app_commands.command(name="suggest")
+    async def suggest(self, interaction: discord.Interaction):
+        """Suggest something for the server."""
+        await interaction.response.send_modal(SuggestModal())
 
 
 async def setup(client):
