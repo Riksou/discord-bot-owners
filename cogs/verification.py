@@ -195,7 +195,7 @@ class PendingVerificationView(discord.ui.View):
             library_developer = interaction.guild.get_role(interaction.client.config["role_id"]["library_developer"])
             verified_member = interaction.guild.get_role(interaction.client.config["role_id"]["verified_member"])
 
-            await interaction.user.add_roles(library_developer, verified_member)
+            await member.add_roles(library_developer, verified_member)
 
             await accept_verification(interaction, member, interaction.message)
 
