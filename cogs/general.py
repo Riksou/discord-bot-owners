@@ -69,7 +69,7 @@ class SuggestModal(discord.ui.Modal, title="Suggestion"):
     suggestion = discord.ui.TextInput(
         label="Suggestion",
         style=discord.TextStyle.paragraph,
-        max_length=4096,
+        max_length=4000,
         placeholder="Type your suggestion here..."
     )
 
