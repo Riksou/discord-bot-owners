@@ -166,7 +166,7 @@ class Tickets(commands.Cog):
         if interaction.channel.category_id != self.client.config["category_id"]["tickets"]:
             return await interaction.response.send_message("This channel is not a ticket.", ephemeral=True)
 
-        if interaction.user.get_role(self.client.config["role_id"]["manager"]) is None or \
+        if interaction.user.get_role(self.client.config["role_id"]["manager"]) is None and \
                 interaction.user.guild_permissions.administrator is False:
             return await interaction.response.send_message(content="You can't do that.", ephemeral=True)
 
