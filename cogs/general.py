@@ -1,5 +1,6 @@
 import math
 import random
+import re
 from typing import Optional
 
 import discord
@@ -177,6 +178,51 @@ class General(commands.Cog):
         )
 
         await interaction.response.send_message(embed=level_embed)
+
+    @app_commands.command(name="leaderboard")
+    async def leaderboard(self, interaction: discord.Interaction):
+        """View top users in terms of exp levels."""
+        def get_entry(rank):
+            level = obj["level"]
+            current_exp = obj["exp"]
+            exp_needed = get_exp_needed(level)
+
+            return (
+                f"`{rank}.` <@{obj['_id']}> - Level {obj['level']}"
+                f" ({current_exp}/{exp_needed})"
+            )
+
+        user = interaction.user
+        lb_embed = discord.Embed(
+            title=f"Leaderboard for {interaction.guild.name}",
+            description="",
+            color=self.client.color,
+            timestamp=discord.utils.utcnow()
+        )
+
+        # sort by level descending, and by exp descending, limiting to 10 results
+        cur = (self.client.mongo.db["guild_member"]
+            .find()
+            .sort([("level", -1), ("exp", -1)])
+            .limit(10)
+        )
+
+        for i, obj in enumerate(await cur.to_list(), start=1):  # top 10 users
+            entry = get_entry(i)
+            if str(interaction.user.id) == obj["_id"]:
+                lb_embed.description += f"**[{entry}](https://discord.gg/ggZn8PaQed)**\n"
+            else:
+                lb_embed.description += (entry + "\n")
+
+        if re.match(r"<@\d{17,}>", lb_embed.description) is not None:
+            # if the user is top 10 for server xp
+            await interaction.response.send_message(embed=lb_embed)
+            return
+
+        obj = await self.client.mongo.fetch_guild_member(user.id)
+        lb_embed.description += f"\n**[{get_entry('You')}](https://discord.gg/ggZn8PaQed)**"
+        await interaction.response.send_message(embed=lb_embed)
+
 
     """ Suggestions system. """
 
