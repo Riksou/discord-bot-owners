@@ -140,10 +140,6 @@ class General(commands.Cog):
             await self.client.mongo.update_guild_member_document(
                 member.id, {"$set": {"exp": exp_won, "level": new_level}}
             )
-
-            if new_level == 5:
-                promotions_role = member.guild.get_role(self.client.config["role_id"]["promotions"])
-                await member.add_roles(promotions_role)
         else:
             await self.client.mongo.update_guild_member_document(member.id, {"$inc": {"exp": exp_won}})
 
