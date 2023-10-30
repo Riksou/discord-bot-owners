@@ -18,7 +18,6 @@ with open("config.json", "r") as fic:
 
 
 class DiscordBotOwners(commands.Bot):
-
     def __init__(self):
         super().__init__(
             command_prefix="!",
@@ -26,7 +25,7 @@ class DiscordBotOwners(commands.Bot):
             chunk_guilds_at_startup=True,
             case_insensitive=True,
             activity=discord.Game(f"Helping bot developers!"),
-            owner_id=212844004889329664
+            owner_id=212844004889329664,
         )
 
         self.remove_command("help")
@@ -37,7 +36,7 @@ class DiscordBotOwners(commands.Bot):
         self.verified_promotions_webhook = None
 
         self.color = 0x5865F2
-        self.green = 0x04d277
+        self.green = 0x04D277
         self.red = 0xE24C4B
 
     @property

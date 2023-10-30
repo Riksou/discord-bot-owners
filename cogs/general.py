@@ -14,18 +14,26 @@ def get_exp_needed(current_level: int) -> int:
 
 
 class AutoRolesView(discord.ui.View):
-
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Announcements", style=discord.ButtonStyle.blurple, custom_id="persisten:announcements")
-    async def announcements(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        announcements_role = interaction.guild.get_role(interaction.client.config["role_id"]["announcements"])
+    @discord.ui.button(
+        label="Announcements",
+        style=discord.ButtonStyle.blurple,
+        custom_id="persisten:announcements",
+    )
+    async def announcements(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
+        announcements_role = interaction.guild.get_role(
+            interaction.client.config["role_id"]["announcements"]
+        )
 
         if announcements_role in interaction.user.roles:
             await interaction.user.remove_roles(announcements_role)
             await interaction.response.send_message(
-                "You will no longer be pinged when an announcement is posted.", ephemeral=True
+                "You will no longer be pinged when an announcement is posted.",
+                ephemeral=True,
             )
         else:
             await interaction.user.add_roles(announcements_role)
@@ -33,14 +41,21 @@ class AutoRolesView(discord.ui.View):
                 "You will now be pinged when an announcement is posted.", ephemeral=True
             )
 
-    @discord.ui.button(label="Events", style=discord.ButtonStyle.blurple, custom_id="persisten:events")
-    async def events(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        events_role = interaction.guild.get_role(interaction.client.config["role_id"]["events"])
+    @discord.ui.button(
+        label="Events", style=discord.ButtonStyle.blurple, custom_id="persisten:events"
+    )
+    async def events(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
+        events_role = interaction.guild.get_role(
+            interaction.client.config["role_id"]["events"]
+        )
 
         if events_role in interaction.user.roles:
             await interaction.user.remove_roles(events_role)
             await interaction.response.send_message(
-                "You will no longer be pinged when an event is starting.", ephemeral=True
+                "You will no longer be pinged when an event is starting.",
+                ephemeral=True,
             )
         else:
             await interaction.user.add_roles(events_role)
@@ -48,9 +63,15 @@ class AutoRolesView(discord.ui.View):
                 "You will now be pinged when an event is starting.", ephemeral=True
             )
 
-    @discord.ui.button(label="Polls", style=discord.ButtonStyle.blurple, custom_id="persisten:polls")
-    async def polls(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        polls_role = interaction.guild.get_role(interaction.client.config["role_id"]["polls"])
+    @discord.ui.button(
+        label="Polls", style=discord.ButtonStyle.blurple, custom_id="persisten:polls"
+    )
+    async def polls(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ) -> None:
+        polls_role = interaction.guild.get_role(
+            interaction.client.config["role_id"]["polls"]
+        )
 
         if polls_role in interaction.user.roles:
             await interaction.user.remove_roles(polls_role)
@@ -65,12 +86,11 @@ class AutoRolesView(discord.ui.View):
 
 
 class SuggestModal(discord.ui.Modal, title="Suggestion"):
-
     suggestion = discord.ui.TextInput(
         label="Suggestion",
         style=discord.TextStyle.paragraph,
         max_length=4000,
-        placeholder="Type your suggestion here..."
+        placeholder="Type your suggestion here...",
     )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
@@ -78,18 +98,24 @@ class SuggestModal(discord.ui.Modal, title="Suggestion"):
             title="Suggestion",
             description=self.suggestion.value,
             color=interaction.client.color,
-            timestamp=discord.utils.utcnow()
+            timestamp=discord.utils.utcnow(),
         )
 
-        suggestion_embed.set_footer(text=f"{interaction.user}", icon_url=interaction.user.avatar.url)
+        suggestion_embed.set_footer(
+            text=f"{interaction.user}", icon_url=interaction.user.avatar.url
+        )
 
-        suggestion_channel = interaction.guild.get_channel(interaction.client.config["channel_id"]["suggestions"])
+        suggestion_channel = interaction.guild.get_channel(
+            interaction.client.config["channel_id"]["suggestions"]
+        )
 
         message = await suggestion_channel.send(embed=suggestion_embed)
         await message.add_reaction("<:check:1046183403877302364>")
         await message.add_reaction("<:cross:1046183402358964236>")
 
-        await interaction.response.send_message("Your suggestion has been submitted.", ephemeral=True)
+        await interaction.response.send_message(
+            "Your suggestion has been submitted.", ephemeral=True
+        )
 
 
 class General(commands.Cog):
@@ -108,18 +134,25 @@ class General(commands.Cog):
         if guild_data["auto_roles_message_id"] is None:
             return
 
-        self.client.add_view(AutoRolesView(), message_id=guild_data["auto_roles_message_id"])
+        self.client.add_view(
+            AutoRolesView(), message_id=guild_data["auto_roles_message_id"]
+        )
 
     async def send_auto_roles_view(self, channel, **kwargs) -> None:
         auto_roles_embed = discord.Embed(
             title="Auto Roles",
             description="Select the roles you want to get by clicking the buttons below.",
-            color=self.client.color
+            color=self.client.color,
         )
 
         msg = await channel.send(embed=auto_roles_embed, view=AutoRolesView(), **kwargs)
         await self.client.mongo.update_guild_data_document(
-            {"$set": {"auto_roles_message_id": msg.id, "auto_roles_channel_id": channel.id}}
+            {
+                "$set": {
+                    "auto_roles_message_id": msg.id,
+                    "auto_roles_channel_id": channel.id,
+                }
+            }
         )
         await self.client.reload_extension("cogs.general")
 
@@ -141,7 +174,9 @@ class General(commands.Cog):
                 member.id, {"$set": {"exp": exp_won, "level": new_level}}
             )
         else:
-            await self.client.mongo.update_guild_member_document(member.id, {"$inc": {"exp": exp_won}})
+            await self.client.mongo.update_guild_member_document(
+                member.id, {"$inc": {"exp": exp_won}}
+            )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -155,7 +190,9 @@ class General(commands.Cog):
         await self._update_exp(message.author, exp_amount)
 
     @app_commands.command(name="level")
-    async def level(self, interaction: discord.Interaction, user: Optional[discord.User]):
+    async def level(
+        self, interaction: discord.Interaction, user: Optional[discord.User]
+    ):
         """Check your current level and exp or someone else's stats."""
         if user is None:
             user = interaction.user
@@ -169,7 +206,7 @@ class General(commands.Cog):
             title=f"{user}",
             description=f"{user.mention} is currently level **{level}** (**{current_exp}**/**{exp_needed}**).",
             color=self.client.color,
-            timestamp=discord.utils.utcnow()
+            timestamp=discord.utils.utcnow(),
         )
 
         await interaction.response.send_message(embed=level_embed)

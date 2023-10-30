@@ -7,3 +7,5 @@ chat-exporter
 motor
 ujson
 aiohttp
+
+black
