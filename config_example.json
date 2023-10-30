@@ -2,18 +2,10 @@
   "bot_token": "",
   "guild_id": 596978185422372866,
   "mongodb_uri": "mongodb://127.0.0.1/",
-  "verified_promotions_webhook_url": "",
-  "tickets": {
-    "Python": ["Request an evaluation of your Python skills.", "<:python:1040766009319100546>", "py"],
-    "JavaScript": ["Request an evaluation of your JavaScript skills.", "<:javascript:1040765775394377868>", "js"],
-    "Java": ["Request an evaluation of your Java skills.", "<:Java:861118214049497119>", "java"],
-    "Rust": ["Request an evaluation of your Rust skills.", "<:Rust:861119790924038154>", "rust"]
-  },
   "role_id": {
     "verified_member": 1045477527486996530,
     "manager": 600963244622086146,
     "verified_bot_developer": 820752105081798656,
-    "promotions": 1041829549337481366,
     "bot_team_member": 1041829549337481366,
     "library_developer": 1041829549337481366,
     "polls": 820752105081798656,
@@ -22,34 +14,6 @@
     "bot_owner_roles": {
       "820752077416038431": 1,
       "600963244622086146": 2
-    },
-    "python_developer": {
-      "manager": 1041099885673463868,
-      "main": 1041096977041084537,
-      "1": 1041097177704960103,
-      "2": 1041097295363575919,
-      "3": 1041097335855398913
-    },
-    "javascript_developer": {
-      "manager": 1041099885673463868,
-      "main": 1041096977041084537,
-      "1": 1041097177704960103,
-      "2": 1041097295363575919,
-      "3": 1041097335855398913
-    },
-    "java_developer": {
-      "manager": 1041099885673463868,
-      "main": 1041096977041084537,
-      "1": 1041097177704960103,
-      "2": 1041097295363575919,
-      "3": 1041097335855398913
-    },
-    "rust_developer": {
-      "manager": 1041099885673463868,
-      "main": 1041096977041084537,
-      "1": 1041097177704960103,
-      "2": 1041097295363575919,
-      "3": 1041097335855398913
     }
   },
   "channel_id": {
@@ -57,7 +21,6 @@
     "staff_logs": 931994006265667654,
     "verification_requests": 1041449847909261352,
     "general": 1040734156327501905,
-    "ads_verification": 1041449847909261352,
     "suggestions": 1041449847909261352
   },
   "category_id": {
